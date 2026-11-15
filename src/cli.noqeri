@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: Apache-2.0
+module noqeri.cli
+
+extern function cliWrite(value: string): bool
+extern function cliWriteLine(value: string): bool
+
+export function cliFlagPresent(args: []string, flag: string): bool {
+    if len(flag) == 0 as usize { return false }
+    let i: usize = 0 as usize
+    while i < len(args) {
+        if args[i] == flag { return true }
+        i = i + 1 as usize
+    }
+    return false
+}
+
+export function cliFindValue(args: []string, flag: string): string {
+    if len(flag) == 0 as usize { return "" }
+    let i: usize = 0 as usize
+    while i + 1 as usize < len(args) {
+        if args[i] == flag { return args[i + 1 as usize] }
+        i = i + 1 as usize
+    }
+    return ""
+}
+
+export function cliSubcommand(args: []string): string {
+    if len(args) < 2 as usize { return "" }
+    return args[1]
+}
+
+export function cliWriteUsage(program: string, usage: string): bool {
+    if len(program) == 0 as usize || len(usage) == 0 as usize { return false }
+    return cliWriteLine(program + " " + usage)
+}
+
+export function cliExitCodeValid(code: int): bool { return code >= 0 && code <= 255 }
+

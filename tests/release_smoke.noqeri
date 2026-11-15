@@ -1,0 +1,13 @@
+import "../src/cli.noqeri"
+
+function require(ok: bool): void {
+    if !ok { let invalid: *u8 = 0 as *u8 print(invalid[0]) }
+}
+
+let args = ["noqeri", "add", "--verbose", "-f", "value"]
+require(cliFlagPresent(args, "--verbose"))
+require(cliFindValue(args, "-f") == "value")
+require(cliSubcommand(args) == "add")
+require(cliExitCodeValid(0))
+print("noqeri-cli package tests: OK")
+
