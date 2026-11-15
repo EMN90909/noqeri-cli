@@ -21,7 +21,7 @@ export async function search(query, fetchImpl = globalThis.fetch) {
   return response.json()
 }
 export async function publish(options, fetchImpl = globalThis.fetch) {
-  const token = options.token || process.env.NOQERI_PUBLISH_TOKEN
+  const token = options.token || process.env.NOQERI_REGISTRY_TOKEN || process.env.NOQERI_PUBLISH_TOKEN
   const privateUrl = (options.privateUrl || process.env.NOQERI_PRIVATE_REGISTRY_URL || '').replace(/\/$/, '')
   if (!token || !privateUrl) throw new Error('NOQERI_PUBLISH_TOKEN and NOQERI_PRIVATE_REGISTRY_URL are required')
   const bytes = await readFile(resolve(options.archive))

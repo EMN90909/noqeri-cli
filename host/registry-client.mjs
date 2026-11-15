@@ -48,12 +48,12 @@ export function decodeArchive(bytes,expectedIntegrity){
     position+=padded
   }
   if(!ended||input.subarray(position).some(b=>b!==0))throw new Error('invalid archive terminator')
-  const manifest=files.find(f=>f.name==='package.noqeri')||files.find(f=>f.name==='package.nqr')
+  const manifest=files.find(f=>f.name==='package.noqeri')
   if(!manifest)throw new Error('package manifest missing')
   const content=new TextDecoder('utf-8',{fatal:true}).decode(manifest.bytes)
   const entry=content.match(/\bentry\s*:\s*"([^"]+)"/)?.[1]
   safeArchivePath(entry)
   if(!files.some(f=>f.name===entry))throw new Error('package entry not found')
-  return {files,entry,manifestName:manifest.name,legacy:manifest.name==='package.nqr'}
+  return {files,entry,manifestName:manifest.name,legacy:false}
 }
 export function sha256Archive(bytes){return 'sha256:'+createHash('sha256').update(bytes).digest('hex')}

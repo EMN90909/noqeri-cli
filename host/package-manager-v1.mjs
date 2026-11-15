@@ -76,7 +76,10 @@ export function createPackageManager(options = {}) {
 
   async function responseBytes(url, limit) {
     if (offline) throw new Error('offline mode forbids network access')
-    const response = await fetchImpl(url, { headers: { Accept: url.endsWith('/download') ? 'application/vnd.noqeri.package+gzip' : 'application/json', 'User-Agent': 'noqeri-stage1' }, redirect: 'error', signal: AbortSignal.timeout(10000) })
+    const headers = { Accept: url.endsWith('/download') ? 'application/vnd.noqeri.nodule+gzip' : 'application/json', 'User-Agent': 'noqeri-stage1' }
+    const token = process.env.NOQERI_REGISTRY_TOKEN || process.env.NOQERI_PUBLISH_TOKEN
+    if (token) headers.Authorization = `Bearer ${token}`
+    const response = await fetchImpl(url, { headers, redirect: 'error', signal: AbortSignal.timeout(10000) })
     if (!response.ok) throw new Error(`download ${response.status}: ${url}`)
     const declared = Number(response.headers.get('content-length') || 0)
     if (declared > limit) throw new Error('download exceeds size limit')
@@ -138,7 +141,7 @@ export function createPackageManager(options = {}) {
     if (state.files !== meta.files || state.bytes !== meta.bytes) throw new Error('cached package metadata counts mismatch')
     const entry = safeRelative(meta.entry)
     const manifestName = meta.manifestName || 'package.noqeri'
-    if (!['package.noqeri', 'package.nqr'].includes(manifestName) || !files.some(file => file.name === manifestName)) throw new Error('cached package manifest missing')
+    if (manifestName !== 'package.noqeri' || !files.some(file => file.name === manifestName)) throw new Error('cached package manifest missing')
     if (!files.some(file => file.name === entry)) throw new Error('cached package entry missing')
     return { ...meta, manifestName, path: target }
   }
