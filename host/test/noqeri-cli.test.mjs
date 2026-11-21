@@ -26,9 +26,8 @@ test('publish sends an .ndl archive with bearer auth', async () => {
   await writeFile(join(root, 'nodules.toml'), '[nodule]\nformat = "ndl-1"\nname = "noqeri/sample"\nversion = "1.2.3"\nentry = "src/sample.noqeri"\nkind = "library"\ntarget = "portable"\nlicense = "Apache-2.0"\n')
   await writeFile(join(root, 'src/sample.noqeri'), 'export function sample(): i32 { return 7 }\n')
   await writeFile(join(root, '.env'), 'NOQERI_PUBLISH_TOKEN=must-not-be-packaged\n')
-  const archive = (await packNodule({ directory: root })).output
   let request
-  const result = await publish({ privateUrl: 'https://private.test', token: 'nq_test_token', archive, directory: root }, async (url, options) => {
+  const result = await publish({ privateUrl: 'https://private.test', token: 'nq_test_token', directory: root }, async (url, options) => {
     request = { url, options }
     return new Response(JSON.stringify({ state: 'submitted' }), { status: 201 })
   })
