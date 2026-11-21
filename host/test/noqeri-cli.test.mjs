@@ -59,6 +59,11 @@ test('pack and build emit a deterministic .ndl with its nodules.toml header', as
   assert.ok(decoded.files.some(file => file.name === 'nodules.toml'))
   assert.ok(!decoded.files.some(file => file.name === '.env'))
   assert.equal(decoded.entry, 'src/sample.noqeri')
+  const debugGzip = await packNodule({ directory: root, format: 'tar.gz', output: join(root, 'sample.tar.gz') })
+  const rawTar = await packNodule({ directory: root, format: 'raw-tar', allowRawTar: true, output: join(root, 'sample.tar') })
+  assert.ok(debugGzip.output.endsWith('.tar.gz'))
+  assert.ok(rawTar.output.endsWith('.tar'))
+  assert.notEqual((await readFile(rawTar.output)).subarray(0, 2).toString('hex'), '1f8b')
 })
 
 test('pack rejects a header that disagrees with package.noqeri', async () => {
