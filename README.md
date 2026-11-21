@@ -1,11 +1,13 @@
 # noqeri-cli
 
-A Noqeri cli library for Noqeri edition 2026. The source stays portable; host-dependent operations are exposed only through explicit, validated extern boundaries.
+A Noqeri CLI library and host integration for the 2026 language edition. The host integration creates deterministic Nodules (`.ndl`) and connects the CLI to the public and private registries.
 
 ## Layout
 
 - `package.noqeri`: canonical package manifest.
+- `nodules.toml`: archive header and package inclusion rules.
 - `src/cli.noqeri`: exported library source.
+- `host/nodule-pack.mjs`: deterministic `.ndl`, `tar.gz`, and debugging `raw-tar` packer.
 - `tests/release_smoke.noqeri`: deterministic source-level smoke fixture.
 - `API_REFERENCE.md`: public API and host-boundary notes.
 
@@ -16,5 +18,5 @@ noqeri check src/cli.noqeri
 noqeri test tests
 ```
 
-The canonical distribution archive is a deterministic `.ndl` tar.gz containing this manifest, source, docs, and tests.
+Run `noqeri pack` or `noqeri build` from a package directory to create `dist/<namespace>-<name>-<version>.ndl`. The archive includes `nodules.toml` and `package.noqeri`; the CLI checks that both manifests agree. `--format tar.gz` and `--raw-tar` are explicit debugging formats. Registry publishing accepts `.ndl` archives only.
 
