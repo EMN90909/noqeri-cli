@@ -51,7 +51,18 @@ export function decodeArchive(bytes,expectedIntegrity){
   const manifest=files.find(f=>f.name==='package.noqeri')
   if(!manifest)throw new Error('package manifest missing')
   const content=new TextDecoder('utf-8',{fatal:true}).decode(manifest.bytes)
-  const entry=content.match(/\bentry\s*:\s*"([^"]+)"/)?.[1]
+  const header=files.find(f=>f.name==='nodules.toml')
+  let entry
+  if(header){
+    const text=new TextDecoder('utf-8',{fatal:true}).decode(header.bytes)
+    const section=/\[(?:nodule|package)\]([\s\S]*?)(?:\n\s*\[|$)/.exec(text)?.[1]||''
+    const field=key=>section.match(new RegExp('^\\s*'+key+'\\s*=\\s*"([^"]+)"\\s*$','m'))?.[1]
+    if(field('format')!=='ndl-1')throw new Error('unsupported nodule header format')
+    if(!field('name')||!field('version')||!field('kind')||!field('target')||!field('license'))throw new Error('incomplete nodules.toml header')
+    if(field('name')!==content.match(/\bname\s*:\s*"([^"]+)"/)?.[1]||field('version')!==content.match(/\bversion\s*:\s*"([^"]+)"/)?.[1])throw new Error('nodule header identity mismatch')
+    entry=field('entry')
+    if(entry!==content.match(/\bentry\s*:\s*"([^"]+)"/)?.[1])throw new Error('nodule header entry mismatch')
+  } else entry=content.match(/\bentry\s*:\s*"([^"]+)"/)?.[1]
   safeArchivePath(entry)
   if(!files.some(f=>f.name===entry))throw new Error('package entry not found')
   return {files,entry,manifestName:manifest.name,legacy:false}

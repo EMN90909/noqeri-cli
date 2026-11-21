@@ -1,0 +1,9 @@
+[nodule]
+format = "ndl-1"
+name = "noqeri/cli"
+version = "1.0.0"
+entry = "src/cli.noqeri"
+kind = "library"
+target = "portable"
+license = "Apache-2.0"
+description = "Official noqeri-cli package for the Noqeri ecosystem"
