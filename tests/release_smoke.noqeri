@@ -4,10 +4,19 @@ function require(ok: bool): void {
     if !ok { let invalid: *u8 = 0 as *u8 print(invalid[0]) }
 }
 
-let args = ["noqeri", "add", "--verbose", "-f", "value"]
+let rawArgs = ["noqeri", "add", "--verbose", "-f", "value", "noqeri/json"]
+let args: []string = slice(rawArgs)
 require(cliFlagPresent(args, "--verbose"))
+require(!cliFlagPresent(args, ""))
 require(cliFindValue(args, "-f") == "value")
+require(cliFindValue(args, "") == "")
 require(cliSubcommand(args) == "add")
+require(cliIsKnownCommand("add"))
+require(cliIsKnownCommand("build"))
+require(cliIsKnownCommand("doctor"))
+require(!cliIsKnownCommand("not-a-command"))
+require(cliFirstPositional(args) == "noqeri/json")
+require(cliCountPositionals(args) == 2)
 require(cliExitCodeValid(0))
 print("noqeri-cli package tests: OK")
 

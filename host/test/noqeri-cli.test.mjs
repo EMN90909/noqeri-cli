@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { search, publish } from '../noqeri-cli.mjs'
+import { main, search, publish } from '../noqeri-cli.mjs'
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -32,3 +32,13 @@ test('publish sends an .ndl archive with bearer auth', async () => {
   assert.match(JSON.parse(request.options.body).archive_base64, /^[A-Za-z0-9+/=]+$/)
 })
 
+test('main delegates SDK commands to system noqeri binary', async () => {
+  const invoked = []
+  const code = await main(['check', 'src/cli.noqeri'], console, (bin, args) => {
+    invoked.push({ bin, args })
+    return { status: 0 }
+  })
+  assert.equal(code, 0)
+  assert.equal(invoked[0].args[0], 'check')
+  assert.equal(invoked[0].args[1], 'src/cli.noqeri')
+})

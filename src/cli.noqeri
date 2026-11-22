@@ -5,7 +5,7 @@ extern function cliWrite(value: string): bool
 extern function cliWriteLine(value: string): bool
 
 export function cliFlagPresent(args: []string, flag: string): bool {
-    if len(flag) == 0 as usize { return false }
+    if textLength(flag) == 0 { return false }
     let i: usize = 0 as usize
     while i < len(args) {
         if args[i] == flag { return true }
@@ -15,7 +15,7 @@ export function cliFlagPresent(args: []string, flag: string): bool {
 }
 
 export function cliFindValue(args: []string, flag: string): string {
-    if len(flag) == 0 as usize { return "" }
+    if textLength(flag) == 0 { return "" }
     let i: usize = 0 as usize
     while i + 1 as usize < len(args) {
         if args[i] == flag { return args[i + 1 as usize] }
@@ -30,9 +30,49 @@ export function cliSubcommand(args: []string): string {
 }
 
 export function cliWriteUsage(program: string, usage: string): bool {
-    if len(program) == 0 as usize || len(usage) == 0 as usize { return false }
+    if textLength(program) == 0 || textLength(usage) == 0 { return false }
     return cliWriteLine(program + " " + usage)
 }
 
 export function cliExitCodeValid(code: int): bool { return code >= 0 && code <= 255 }
 
+export function cliIsKnownCommand(cmd: string): bool {
+    if cmd == "new" || cmd == "check" || cmd == "nir" || cmd == "run" { return true }
+    if cmd == "build" || cmd == "build-exe" || cmd == "emit-c" || cmd == "test" { return true }
+    if cmd == "pkg" || cmd == "search" || cmd == "add" || cmd == "install" || cmd == "publish" { return true }
+    if cmd == "doctor" || cmd == "manifest" || cmd == "lock" || cmd == "audit" || cmd == "format" || cmd == "lsp" { return true }
+    return false
+}
+
+export function cliCountPositionals(args: []string): int {
+    let count: int = 0
+    let i: usize = 1 as usize
+    while i < len(args) {
+        let arg: string = args[i]
+        if textLength(arg) > 0 && arg != "--verbose" && arg != "-h" && arg != "--help" && arg != "-O0" && arg != "-O1" && arg != "-O2" && arg != "-O3" {
+            if arg == "-f" || arg == "--target" || arg == "--backend" || arg == "--archive" {
+                i = i + 2 as usize
+                continue
+            }
+            count = count + 1
+        }
+        i = i + 1 as usize
+    }
+    return count
+}
+
+export function cliFirstPositional(args: []string): string {
+    let i: usize = 2 as usize
+    while i < len(args) {
+        let arg: string = args[i]
+        if arg == "-f" || arg == "--target" || arg == "--backend" || arg == "--archive" {
+            i = i + 2 as usize
+            continue
+        }
+        if textLength(arg) > 0 && arg != "--verbose" && arg != "-h" && arg != "--help" && arg != "-O0" && arg != "-O1" && arg != "-O2" && arg != "-O3" {
+            return arg
+        }
+        i = i + 1 as usize
+    }
+    return ""
+}
