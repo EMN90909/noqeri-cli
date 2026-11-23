@@ -199,6 +199,7 @@ export function createPackageManager(options = {}) {
     }
     if (unpacked.legacy) console.warn('NQR-PLEGACY: package.nqr uses legacy .nqr sources; republish using package.noqeri and .noqeri sources')
     await atomicPackageWrite(target, files, record)
+    await writeFile(join(cacheRoot, `${namespace}-${name}-${release.version}.ndl`), archive, { mode: 0o600 })
     return { ...record, path: target }
   }
 
@@ -284,7 +285,7 @@ export function createPackageManager(options = {}) {
   async function writeLock(projectPath, items) {
     const sorted = [...items].sort((a, b) => compareText(a.coordinate, b.coordinate))
     let output = 'noqeri-lock 3\n'
-    for (const item of sorted) output += `package ${item.alias} ${item.coordinate} ${item.version} ${item.integrity} ${item.entry}\n`
+    for (const item of sorted) output += `package ${item.alias} ${item.coordinate} ${item.version} ${item.archiveIntegrity || item.integrity} ${item.entry}\n`
     await writeFile(join(dirname(projectPath), 'noqeri.lock'), output, { mode: 0o600 })
   }
 

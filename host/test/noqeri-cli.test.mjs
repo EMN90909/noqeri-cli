@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { main, search, publish } from '../noqeri-cli.mjs'
-import { mkdtemp, writeFile } from 'node:fs/promises'
+import { main, search, publish, packPackage } from '../noqeri-cli.mjs'
+import { decodeArchive } from '../registry-client.mjs'
+import { mkdtemp, writeFile, readFile, mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -17,7 +18,7 @@ test('search uses the public read-only API', async () => {
   assert.equal(calls[0].options.method, undefined)
 })
 
-test('publish sends an .ndl archive with bearer auth', async () => {
+test('publish sends an .ndl archive with bearer auth and SHA-256', async () => {
   const root = await mkdtemp(join(tmpdir(), 'noqeri-cli-'))
   const archive = join(root, 'sample.ndl')
   await writeFile(archive, Buffer.from([31, 139, 8, 0]))
@@ -29,7 +30,21 @@ test('publish sends an .ndl archive with bearer auth', async () => {
   assert.equal(result.state, 'submitted')
   assert.equal(request.url, 'https://private.test/v1/publish')
   assert.equal(request.options.headers.authorization, 'Bearer nq_test_token')
-  assert.match(JSON.parse(request.options.body).archive_base64, /^[A-Za-z0-9+/=]+$/)
+  const parsed = JSON.parse(request.options.body)
+  assert.match(parsed.archive_base64, /^[A-Za-z0-9+/=]+$/)
+  assert.match(parsed.archive_sha256, /^[0-9a-f]{64}$/)
+})
+
+test('packPackage builds a verifiable gzip+ustar .ndl decoded by registry-client', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'noqeri-pack-'))
+  await mkdir(join(root, 'src'), { recursive: true })
+  await writeFile(join(root, 'package.noqeri'), 'package {\n  name: "noqeri/demo"\n  version: "1.0.0"\n  entry: "src/demo.noqeri"\n}\n')
+  await writeFile(join(root, 'src', 'demo.noqeri'), 'export function demoOk(): int { return 7 }\n')
+  const packed = await packPackage(root)
+  const raw = await readFile(packed.archive)
+  const unpacked = decodeArchive(raw, packed.integrity)
+  assert.equal(unpacked.entry, 'src/demo.noqeri')
+  assert.ok(unpacked.files.some(f => f.name === 'package.noqeri'))
 })
 
 test('main delegates SDK commands to system noqeri binary', async () => {

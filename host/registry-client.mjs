@@ -6,8 +6,8 @@ const MAX_ARCHIVE=8*1024*1024, MAX_EXPANDED=9*1024*1024, MAX_FILES=256
 export const IDENT=/^[a-z0-9][a-z0-9-]*$/
 export const VERSION=/^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/
 export const INTEGRITY=/^sha256:[0-9a-f]{64}$/
-export function apiBase(value=process.env.NOQERI_REGISTRY_API_URL){
-  if(!value)throw new Error('NOQERI_REGISTRY_API_URL must name a Registry v1 server')
+export function apiBase(value=process.env.NOQERI_REGISTRY_API_URL||process.env.NOQERI_PRIVATE_REGISTRY_URL){
+  if(!value)throw new Error('NOQERI_REGISTRY_API_URL (or NOQERI_PRIVATE_REGISTRY_URL) must name a Registry v1 server')
   const url=new URL(value)
   if(url.username||url.password||url.search||url.hash||(url.protocol!=='https:'&&!(url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname))))throw new Error('Registry requires HTTPS or localhost development')
   return url.href.replace(/\/$/,'')
